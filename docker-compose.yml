@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    image: life-planner:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Loopback only: reachable through `tailscale serve`, not from the LAN.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./data:/data

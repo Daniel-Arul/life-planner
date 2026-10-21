@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+/* Design tokens. `static` emits every variable so component <style> blocks can use them. */
+@theme static {
+	--color-paper: #faf7f0;
+	--color-surface: #fffefb;
+	--color-ink: #2b2a33;
+	/* Darker than the plan's #8a8696 so secondary text passes WCAG AA on paper. */
+	--color-muted: #6b6779;
+	--color-grid: #d9d4e3;
+
+	--color-lavender: #cdb4ff; /* events / plans */
+	--color-mint: #b5ead7; /* workouts */
+	--color-peach: #ffcba4; /* expenses */
+	--color-butter: #fff1a8; /* to-dos */
+	--color-sky: #a7d8f0; /* ideas */
+	--color-rose: #f7b2c4; /* overdue / over budget / destructive */
+
+	--font-pixel: 'Pixelify Sans', ui-monospace, monospace;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	--shadow-hard: 4px 4px 0 var(--color-ink);
+	--shadow-hard-sm: 2px 2px 0 var(--color-ink);
+}
+
+@layer base {
+	html {
+		color-scheme: light;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		color: var(--color-ink);
+		font-family: var(--font-mono);
+		background-color: var(--color-paper);
+		/* Retro desktop dot grid. */
+		background-image: radial-gradient(var(--color-grid) 1px, transparent 1px);
+		background-size: 12px 12px;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-pixel);
+		font-weight: 500;
+		letter-spacing: 0.02em;
+	}
+
+	:focus-visible {
+		outline: 2px dashed var(--color-ink);
+		outline-offset: 3px;
+	}
+
+	::selection {
+		background: var(--color-lavender);
+	}
+}
+
+@utility tabular {
+	font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation: none !important;
+		transition: none !important;
+	}
+}

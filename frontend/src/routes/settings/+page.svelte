@@ -1,0 +1,54 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { session } from '$lib/session.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Window from '$lib/ui/Window.svelte';
+
+	async function logout() {
+		await session.logout();
+		await goto('/login');
+	}
+</script>
+
+<svelte:head><title>Settings · Life Planner</title></svelte:head>
+
+<div class="settings">
+	<Window title="Account" accent="paper">
+		<dl>
+			<dt>Logged in as</dt>
+			<dd>{session.user?.username}</dd>
+		</dl>
+		<p class="hint">
+			To change your password for now, run
+			<code>docker compose exec app python -m app.cli set-password {session.user?.username}</code>
+			on the Pi.
+		</p>
+		<Button variant="danger" onclick={logout}>Log out</Button>
+	</Window>
+</div>
+
+<style>
+	.settings {
+		max-width: 36rem;
+	}
+
+	dl {
+		margin: 0 0 1rem;
+	}
+
+	dt {
+		font-family: var(--font-pixel);
+		color: var(--color-muted);
+	}
+
+	dd {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+
+	.hint {
+		font-size: 0.85rem;
+		color: var(--color-muted);
+		overflow-wrap: anywhere;
+	}
+</style>
