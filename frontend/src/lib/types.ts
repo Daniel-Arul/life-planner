@@ -143,3 +143,25 @@ export type ProgressPoint = {
 	distance: number | null;
 	duration_s: number | null;
 };
+
+export type IdeaStatus = 'new' | 'exploring' | 'done' | 'archived';
+
+export const IDEA_STATUSES: { value: IdeaStatus; label: string }[] = [
+	{ value: 'new', label: 'New' },
+	{ value: 'exploring', label: 'Exploring' },
+	{ value: 'done', label: 'Done' },
+	{ value: 'archived', label: 'Archived' }
+];
+
+export type Idea = {
+	id: number;
+	title: string;
+	/** Markdown. */
+	body: string;
+	tags: string[];
+	status: IdeaStatus;
+	created_at: string;
+	updated_at: string;
+};
+
+export type IdeaInput = Pick<Idea, 'title' | 'body' | 'tags' | 'status'>;

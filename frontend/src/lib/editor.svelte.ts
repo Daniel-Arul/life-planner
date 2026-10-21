@@ -1,5 +1,5 @@
-import { events, expenses, todos, workouts } from './data';
-import type { Expense, PlannerEvent, Todo, Workout } from './types';
+import { events, expenses, ideas, todos, workouts } from './data';
+import type { Expense, Idea, PlannerEvent, Todo, Workout } from './types';
 
 /** Prefill for a new event: dates as "YYYY-MM-DD", times as "HH:MM". */
 export type EventDraft = {
@@ -15,7 +15,8 @@ export type EditorTarget =
 	| { kind: 'event'; event?: PlannerEvent; draft?: EventDraft }
 	| { kind: 'todo'; todo?: Todo; dueDate?: string }
 	| { kind: 'expense'; expense?: Expense; date?: string }
-	| { kind: 'workout'; workout?: Workout; date?: string };
+	| { kind: 'workout'; workout?: Workout; date?: string }
+	| { kind: 'idea'; idea?: Idea; title?: string };
 
 /**
  * One app-wide editor sheet, so the calendar, to-do list, dashboard and the
@@ -53,6 +54,10 @@ class Editor {
 
 	async editWorkout(id: number) {
 		this.open({ kind: 'workout', workout: await workouts.get(id) });
+	}
+
+	async editIdea(id: number) {
+		this.open({ kind: 'idea', idea: await ideas.get(id) });
 	}
 }
 

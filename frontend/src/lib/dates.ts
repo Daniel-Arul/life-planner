@@ -69,6 +69,23 @@ export function formatDay(dateStr: string): string {
 	});
 }
 
+/** "3 days ago", "yesterday", "just now" for a timestamp. */
+export function formatRelative(iso: string): string {
+	const seconds = (new Date(iso).getTime() - Date.now()) / 1000;
+	if (Math.abs(seconds) < 60) return 'just now';
+	const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+	const units: [Intl.RelativeTimeFormatUnit, number][] = [
+		['year', 31_536_000],
+		['month', 2_592_000],
+		['week', 604_800],
+		['day', 86_400],
+		['hour', 3_600],
+		['minute', 60]
+	];
+	const [unit, size] = units.find(([, s]) => Math.abs(seconds) >= s) ?? ['minute', 60];
+	return rtf.format(Math.round(seconds / size), unit);
+}
+
 export function formatTime(d: Date): string {
 	return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }

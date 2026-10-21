@@ -8,6 +8,7 @@
 	import { formatDay, todayStr } from '$lib/dates';
 	import EventForm from './EventForm.svelte';
 	import ExpenseForm from './ExpenseForm.svelte';
+	import IdeaForm from './IdeaForm.svelte';
 	import TodoForm from './TodoForm.svelte';
 	import WorkoutForm from './WorkoutForm.svelte';
 
@@ -21,6 +22,7 @@
 			return { title: target.expense ? 'Edit expense' : 'New expense', accent: 'peach' };
 		if (target.kind === 'workout')
 			return { title: target.workout ? 'Edit workout' : 'Log workout', accent: 'mint' };
+		if (target.kind === 'idea') return { title: target.idea ? 'Edit idea' : 'New idea', accent: 'sky' };
 		return { title: `Add to ${formatDay(target.date)}`, accent: 'lavender' };
 	});
 
@@ -33,7 +35,8 @@
 		editor.open({ kind: 'event', draft: { startDate: date, startTime: time } });
 	}
 
-	// Laptop shortcuts: n = new item, g then h/c/t/e/w = go to home/calendar/to-dos/expenses/workouts.
+	// Laptop shortcuts: n = new item, / = search, g then h/c/t/e/w/i = go to
+	// home/calendar/to-dos/expenses/workouts/ideas.
 	let pendingG = 0;
 	function onkeydown(e: KeyboardEvent) {
 		if (e.metaKey || e.ctrlKey || e.altKey || editor.target) return;
@@ -41,7 +44,7 @@
 		if (el.closest('input, textarea, select, [contenteditable="true"]')) return;
 
 		if (Date.now() - pendingG < 1000) {
-			const dest = { h: '/', c: '/calendar', t: '/todos', e: '/expenses', w: '/workouts' }[e.key];
+			const dest = { h: '/', c: '/calendar', t: '/todos', e: '/expenses', w: '/workouts', i: '/ideas' }[e.key];
 			pendingG = 0;
 			if (dest) {
 				e.preventDefault();
@@ -49,6 +52,13 @@
 			}
 		} else if (e.key === 'g') {
 			pendingG = Date.now();
+		} else if (e.key === '/') {
+			// Focus the page's search box, if it has one.
+			const search = document.querySelector<HTMLInputElement>('[data-search]');
+			if (search) {
+				e.preventDefault();
+				search.focus();
+			}
 		} else if (e.key === 'n') {
 			e.preventDefault();
 			editor.open({ kind: 'chooser', date: todayStr() });
@@ -78,6 +88,8 @@
 			<ExpenseForm expense={target.expense} date={target.date} onsaved={saved} oncancel={() => editor.close()} />
 		{:else if target?.kind === 'workout'}
 			<WorkoutForm workout={target.workout} date={target.date} onsaved={saved} oncancel={() => editor.close()} />
+		{:else if target?.kind === 'idea'}
+			<IdeaForm idea={target.idea} title={target.title} onsaved={saved} oncancel={() => editor.close()} />
 		{:else if target?.kind === 'chooser'}
 			<div class="chooser">
 				<button
@@ -112,8 +124,11 @@
 					<Pixel art={icons.workout} size={32} />
 					<span>Workout</span>
 				</button>
+				<button type="button" style:--accent="var(--color-sky)" onclick={() => editor.open({ kind: 'idea' })}>
+					<Pixel art={icons.idea} size={32} />
+					<span>Idea</span>
+				</button>
 			</div>
-			<p class="soon">Ideas join this menu in a later milestone.</p>
 		{/if}
 	{/key}
 </Sheet>
@@ -146,6 +161,12 @@
 		gap: 1rem;
 	}
 
+	@media (min-width: 768px) {
+		.chooser {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
 	.chooser button {
 		display: flex;
 		flex-direction: column;
@@ -164,13 +185,6 @@
 	.chooser button:active {
 		transform: translate(2px, 2px);
 		box-shadow: none;
-	}
-
-	.soon {
-		margin: 1rem 0 0;
-		font-size: 0.85rem;
-		color: var(--color-muted);
-		text-align: center;
 	}
 
 	@media (min-width: 1024px) {

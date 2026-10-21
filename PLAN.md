@@ -8,13 +8,13 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Docker Compose for deployment.
 - A 64-bit OS on a Pi 4 or Pi 5.
 
-**Status:** milestones 1–4 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets; workouts). Next: milestone 5, ideas.
+**Status:** milestones 1–5 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets; workouts; ideas). Next: milestone 6, dashboard polish, PWA and export.
 
 **Changes from the original plan so far:**
 - On laptops, edit forms open as a modal window rather than a master–detail side pane, so every page shares one editor.
 - Editing a recurring event changes the whole series; occurrences of a series can't be dragged individually (one-off exceptions could come later).
 - Event times are stored as local wall-clock times with no timezone, so recurring events keep their local time across daylight-saving changes.
-- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t`/`e`/`w` (go to Home, Calendar, To-dos, Expenses or Workouts) work now.
+- Shortcuts: `n` (new item), `/` (focus the page's search box; only Ideas has one so far), and `g` then `h`/`c`/`t`/`e`/`w`/`i` (go to Home, Calendar, To-dos, Expenses, Workouts or Ideas).
 - Charts are small hand-built SVG components instead of Chart.js/LayerChart, keeping the bundle light and the look consistent. Chart marks use a deeper peach (`#e8894b`), because the pastel is too faint to read as a mark.
 - Expense categories have no color of their own. Expense charts are a single series in the module's peach, and over-budget shows as a status color with an icon and text.
 - The currency is set by `PLANNER_CURRENCY` in `.env` (default CAD) and served to the app from `/api/config`. The expense date field is `spent_on`.
@@ -23,6 +23,7 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Workouts on the calendar open the editor rather than dragging. The log form has "Same as last time" to copy a previous session's exercises.
 - Workout charts use a deeper mint (`#2f9e78`, which passes 3:1 contrast). Spending and workouts share one column-chart component; exercise progress uses a line chart.
 - The pixel font no longer draws digits (its 5/S and 3/8 are too alike), so numbers everywhere fall back to IBM Plex Mono.
+- Idea tags are stored as a JSON list on the idea (normalized to lowercase, no `#`) rather than in a separate table. "Active" means New or Exploring. The Markdown editor is a plain textarea with Write/Preview tabs, rendered with `marked` and sanitized with DOMPurify (links open in a new tab).
 
 ---
 

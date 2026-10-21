@@ -10,6 +10,7 @@ from .expense import (
     ExpenseRead,
     ExpenseUpdate,
 )
+from .idea import Idea, IdeaCreate, IdeaRead, IdeaUpdate
 from .todo import Todo, TodoCreate, TodoRead, TodoReorder, TodoUpdate
 from .user import User
 from .workout import (
@@ -38,6 +39,10 @@ __all__ = [
     "ExpenseCreate",
     "ExpenseRead",
     "ExpenseUpdate",
+    "Idea",
+    "IdeaCreate",
+    "IdeaRead",
+    "IdeaUpdate",
     "Todo",
     "TodoCreate",
     "TodoRead",

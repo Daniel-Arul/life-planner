@@ -8,6 +8,9 @@ import type {
 	ExpenseInput,
 	ExpenseStats,
 	Exercise,
+	Idea,
+	IdeaInput,
+	IdeaStatus,
 	PlannerEvent,
 	ProgressPoint,
 	Todo,
@@ -76,6 +79,20 @@ export const exercises = {
 	update: (id: number, changes: Partial<Pick<Exercise, 'name' | 'kind'>>) =>
 		api.patch<Exercise>(`/exercises/${id}`, changes),
 	remove: (id: number) => api.delete(`/exercises/${id}`)
+};
+
+export const ideas = {
+	list: (status: IdeaStatus | 'active' | 'all' = 'active', tag?: string, q?: string) => {
+		const params = new URLSearchParams({ status });
+		if (tag) params.set('tag', tag);
+		if (q) params.set('q', q);
+		return api.get<Idea[]>(`/ideas?${params}`);
+	},
+	tags: () => api.get<{ tag: string; count: number }[]>('/ideas/tags'),
+	get: (id: number) => api.get<Idea>(`/ideas/${id}`),
+	create: (input: IdeaInput) => api.post<Idea>('/ideas', input),
+	update: (id: number, changes: Partial<IdeaInput>) => api.patch<Idea>(`/ideas/${id}`, changes),
+	remove: (id: number) => api.delete(`/ideas/${id}`)
 };
 
 export function fetchCalendar(start: Date, end: Date) {

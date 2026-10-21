@@ -1,11 +1,26 @@
 <script lang="ts">
 	import TodoRow from '$lib/components/TodoRow.svelte';
-	import { expenses as expensesApi, fetchCalendar, todos as todosApi, workouts as workoutsApi } from '$lib/data';
-	import { addDays, daysFromToday, formatDay, formatTime, parseLocal, toMonthStr, todayStr } from '$lib/dates';
+	import {
+		expenses as expensesApi,
+		fetchCalendar,
+		ideas as ideasApi,
+		todos as todosApi,
+		workouts as workoutsApi
+	} from '$lib/data';
+	import {
+		addDays,
+		daysFromToday,
+		formatDay,
+		formatRelative,
+		formatTime,
+		parseLocal,
+		toMonthStr,
+		todayStr
+	} from '$lib/dates';
 	import { editor } from '$lib/editor.svelte';
 	import { session } from '$lib/session.svelte';
 	import { formatMoney } from '$lib/money';
-	import type { CalendarItem, ExpenseStats, Todo, Workout, WorkoutStats } from '$lib/types';
+	import type { CalendarItem, ExpenseStats, Idea, Todo, Workout, WorkoutStats } from '$lib/types';
 	import { kindLabel } from '$lib/units';
 	import BudgetMeter from '$lib/ui/BudgetMeter.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -25,6 +40,7 @@
 	let spending = $state<ExpenseStats | null>(null);
 	let training = $state<WorkoutStats | null>(null);
 	let thisWeek = $state<Workout[]>([]);
+	let latestIdeas = $state<Idea[]>([]);
 	let loaded = $state(false);
 
 	// Most pressing first: overdue, then due today, then by the list's own order.
@@ -49,9 +65,11 @@
 			todosApi.list('open'),
 			expensesApi.stats(toMonthStr(start)),
 			workoutsApi.stats(1),
-			workoutsApi.list(7)
+			workoutsApi.list(7),
+			ideasApi.list('active')
 		]).then(
-			([items, todos, stats, wStats, recentWorkouts]) => {
+			([items, todos, stats, wStats, recentWorkouts, activeIdeas]) => {
+				latestIdeas = activeIdeas.slice(0, 4);
 				spending = stats;
 				training = wStats;
 				const monday = wStats.weeks[0]?.week_start ?? todayStr();
@@ -175,7 +193,24 @@
 			</div>
 		</Window>
 		<Window title="Latest ideas" accent="sky">
-			<EmptyState message="No ideas jotted" hint="Ideas arrive in milestone 5." />
+			{#if latestIdeas.length}
+				<ul class="top-cats">
+					{#each latestIdeas as idea (idea.id)}
+						<li>
+							<button type="button" class="plain" onclick={() => editor.open({ kind: 'idea', idea })}>
+								{idea.title}
+							</button>
+							<span class="idea-when">{formatRelative(idea.updated_at)}</span>
+						</li>
+					{/each}
+				</ul>
+			{:else if loaded}
+				<EmptyState message="No ideas jotted" hint="Capture the next one here." />
+			{/if}
+			<div class="window-actions">
+				<Button onclick={() => editor.open({ kind: 'idea' })}>+ Idea</Button>
+				<a class="more" href="/ideas">Ideas →</a>
+			</div>
 		</Window>
 	</div>
 </div>
@@ -282,6 +317,16 @@
 		border: 0;
 		text-decoration: underline dotted;
 		cursor: pointer;
+	}
+
+	.top-cats li {
+		gap: 0.75rem;
+	}
+
+	.idea-when {
+		flex-shrink: 0;
+		font-size: 0.8rem;
+		color: var(--color-muted);
 	}
 
 	.window-actions {

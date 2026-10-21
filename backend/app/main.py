@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 
 from .auth import get_current_user
 from .config import DEFAULT_SECRET_KEY, get_settings
-from .routers import auth, calendar, events, expenses, health, meta, stats, todos, workouts
+from .routers import auth, calendar, events, expenses, health, ideas, meta, stats, todos, workouts
 
 logger = logging.getLogger("life_planner")
 
@@ -49,6 +49,7 @@ def create_app() -> FastAPI:
         stats.router,
         workouts.exercises_router,
         workouts.router,
+        ideas.router,
     ):
         api.include_router(router, dependencies=[Depends(get_current_user)])
     app.include_router(api)
