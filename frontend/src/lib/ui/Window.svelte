@@ -6,19 +6,22 @@
 		title,
 		accent = 'lavender',
 		class: className = '',
+		fill = false,
 		actions,
 		children
 	}: {
 		title: string;
 		accent?: Accent;
 		class?: string;
+		/** Stretch to the parent's height and scroll the body instead of the page. */
+		fill?: boolean;
 		/** Optional controls shown at the right of the title bar. */
 		actions?: Snippet;
 		children: Snippet;
 	} = $props();
 </script>
 
-<section class="window {className}" style:--accent={accentVar(accent)}>
+<section class="window {className}" class:fill style:--accent={accentVar(accent)}>
 	<header class="titlebar">
 		<span class="box" aria-hidden="true"></span>
 		<h2>{title}</h2>
@@ -76,6 +79,22 @@
 
 	.body {
 		padding: 1rem;
+	}
+
+	.fill {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		box-sizing: border-box;
+	}
+
+	.fill .body {
+		flex: 1;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	/* Full retro chrome when there's room: hard shadow, pinstripes, close boxes. */

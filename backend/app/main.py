@@ -1,11 +1,12 @@
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 
+from .auth import get_current_user
 from .config import DEFAULT_SECRET_KEY, get_settings
-from .routers import auth, health
+from .routers import auth, calendar, events, health, todos
 
 logger = logging.getLogger("life_planner")
 
@@ -38,6 +39,8 @@ def create_app() -> FastAPI:
     api = APIRouter(prefix="/api")
     api.include_router(health.router)
     api.include_router(auth.router)
+    for router in (events.router, todos.router, calendar.router):
+        api.include_router(router, dependencies=[Depends(get_current_user)])
     app.include_router(api)
 
     if settings.static_dir is not None:

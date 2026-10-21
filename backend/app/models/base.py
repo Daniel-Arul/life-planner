@@ -1,6 +1,10 @@
 from datetime import UTC, datetime
+from typing import Literal
 
 from sqlmodel import Field, SQLModel
+
+# Pastel accent names shared with the frontend theme (app.css).
+Accent = Literal["lavender", "mint", "peach", "butter", "sky", "rose"]
 
 
 def utcnow() -> datetime:

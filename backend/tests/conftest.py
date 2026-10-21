@@ -46,3 +46,11 @@ def user(client) -> User:
         session.commit()
         session.refresh(user)
         return user
+
+
+@pytest.fixture
+def api(client, user):
+    """A logged-in client."""
+    response = client.post("/api/auth/login", json={"username": USERNAME, "password": PASSWORD})
+    assert response.status_code == 200
+    return client

@@ -8,7 +8,13 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Docker Compose for deployment.
 - A 64-bit OS on a Pi 4 or Pi 5.
 
-**Status:** planning complete; implementation starts at milestone 1.
+**Status:** milestones 1–2 done (skeleton, auth, UI kit; to-dos, events, calendar). Next: milestone 3, expenses.
+
+**Changes from the original plan so far:**
+- On laptops, edit forms open as a modal window rather than a master–detail side pane, so every page shares one editor.
+- Editing a recurring event changes the whole series; occurrences of a series can't be dragged individually (one-off exceptions could come later).
+- Event times are stored as local wall-clock times with no timezone, so recurring events keep their local time across daylight-saving changes.
+- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t` (go to Home, Calendar or To-dos) work now.
 
 ---
 

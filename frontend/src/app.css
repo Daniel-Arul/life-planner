@@ -15,6 +15,7 @@
 	--color-butter: #fff1a8; /* to-dos */
 	--color-sky: #a7d8f0; /* ideas */
 	--color-rose: #f7b2c4; /* overdue / over budget / destructive */
+	--color-alert: #a8325a; /* text on paper for warnings, e.g. priority marks */
 
 	--font-pixel: 'Pixelify Sans', ui-monospace, monospace;
 	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -55,6 +56,100 @@
 
 	::selection {
 		background: var(--color-lavender);
+	}
+}
+
+@layer components {
+	/* Shared look for text inputs, selects and textareas: inset bevel, block caret. */
+	.retro-input {
+		box-sizing: border-box;
+		width: 100%;
+		min-height: 44px;
+		padding: 0.5rem 0.75rem;
+		font: inherit;
+		font-size: 1rem; /* 16px stops iOS zooming on focus */
+		color: var(--color-ink);
+		background-color: var(--color-surface);
+		border: 2px solid var(--color-ink);
+		border-radius: 0;
+		box-shadow: inset 2px 2px 0 color-mix(in srgb, var(--color-ink) 15%, transparent);
+		caret-color: var(--color-ink);
+		caret-shape: block;
+	}
+
+	.retro-input:focus-visible {
+		outline: none;
+		background-color: color-mix(in srgb, var(--color-butter) 35%, var(--color-surface));
+	}
+
+	.retro-input::placeholder {
+		color: var(--color-muted);
+	}
+
+	/* Square pixel checkbox. */
+	.retro-check {
+		appearance: none;
+		flex-shrink: 0;
+		width: 1.4rem;
+		height: 1.4rem;
+		margin: 0;
+		background: var(--color-surface);
+		border: 2px solid var(--color-ink);
+		border-radius: 0;
+		box-shadow: inset 2px 2px 0 color-mix(in srgb, var(--color-ink) 15%, transparent);
+		cursor: pointer;
+	}
+
+	.retro-check:checked {
+		background-color: var(--color-butter);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath fill='%232b2a33' d='M1 3h1v1H1zM2 4h1v1H2zM3 5h1v1H3zM4 4h1v1H4zM5 3h1v1H5zM6 2h1v1H6z'/%3E%3C/svg%3E");
+		background-size: 100%;
+		box-shadow: none;
+	}
+
+	.field-label {
+		font-family: var(--font-pixel);
+		font-size: 0.9rem;
+	}
+
+	/* Toggle chip: aria-pressed="true" fills it with its accent. */
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		min-height: 36px;
+		padding: 0.2rem 0.75rem;
+		font-family: var(--font-pixel);
+		font-size: 0.9rem;
+		color: var(--color-ink);
+		background: var(--color-surface);
+		border: 2px solid var(--color-ink);
+		border-radius: 0;
+		cursor: pointer;
+	}
+
+	.chip[aria-pressed='true'] {
+		background: var(--chip-accent, var(--color-lavender));
+		box-shadow: inset 2px 2px 0 color-mix(in srgb, var(--color-ink) 18%, transparent);
+	}
+
+	/* Small inline label, e.g. a due date or tag. */
+	.badge {
+		display: inline-block;
+		padding: 0 0.4rem;
+		font-family: var(--font-pixel);
+		font-size: 0.8rem;
+		line-height: 1.5;
+		border: 2px solid var(--color-ink);
+		background: var(--badge-accent, var(--color-surface));
+		white-space: nowrap;
+	}
+
+	.error-box {
+		margin: 0;
+		padding: 0.5rem 0.75rem;
+		background: var(--color-rose);
+		border: 2px solid var(--color-ink);
 	}
 }
 

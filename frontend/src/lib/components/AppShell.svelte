@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Dock from './Dock.svelte';
+	import EditorHost from './EditorHost.svelte';
 	import MenuBar from './MenuBar.svelte';
 	import Sidebar from './Sidebar.svelte';
 
@@ -14,6 +15,7 @@
 		<main>{@render children()}</main>
 	</div>
 	<Dock />
+	<EditorHost />
 </div>
 
 <style>

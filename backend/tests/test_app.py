@@ -1,9 +1,12 @@
 from pathlib import Path
 
 from alembic import command
+from alembic.autogenerate import compare_metadata
 from alembic.config import Config
+from alembic.migration import MigrationContext
 from fastapi.testclient import TestClient
 from sqlalchemy import inspect
+from sqlmodel import SQLModel
 
 from app.config import get_settings
 from app.db import get_engine
@@ -16,11 +19,19 @@ def test_health(client):
     assert client.get("/api/health").json() == {"status": "ok"}
 
 
-def test_migrations_create_user_table(settings):
+def test_migrations_match_models(settings):
     command.upgrade(Config(str(BACKEND_DIR / "alembic.ini")), "head")
-    inspector = inspect(get_engine())
-    assert "user" in inspector.get_table_names()
-    assert {c["name"] for c in inspector.get_columns("user")} >= {"username", "password_hash"}
+    assert {"user", "event", "todo"} <= set(inspect(get_engine()).get_table_names())
+
+    with get_engine().connect() as connection:
+        context = MigrationContext.configure(connection)
+        diff = compare_metadata(context, SQLModel.metadata)
+    assert diff == [], "models changed without a migration"
+
+
+def test_data_endpoints_require_login(client):
+    for path in ("/api/todos", "/api/events", "/api/calendar?start=2026-10-01T00:00&end=2026-11-01T00:00"):
+        assert client.get(path).status_code == 401, path
 
 
 def test_serves_spa_with_fallback(settings, tmp_path, monkeypatch):
