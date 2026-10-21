@@ -106,12 +106,24 @@
 		gap: 0.5rem;
 	}
 
+	/* Phone: name on its own line so it isn't cut off. */
 	li {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) 8rem 44px;
-		grid-template-areas: 'name kind delete' 'usage usage usage';
-		gap: 0.25rem 0.4rem;
+		grid-template-columns: 8rem minmax(0, 1fr) 44px;
+		grid-template-areas: 'name name name' 'kind usage delete';
+		gap: 0.3rem 0.5rem;
 		align-items: center;
+		padding-bottom: 0.5rem;
+		border-bottom: 2px dotted var(--color-grid);
+	}
+
+	@media (min-width: 640px) {
+		li {
+			grid-template-columns: minmax(0, 1fr) 8rem 44px;
+			grid-template-areas: 'name kind delete' 'usage usage usage';
+			padding-bottom: 0;
+			border-bottom: 0;
+		}
 	}
 
 	li > input {

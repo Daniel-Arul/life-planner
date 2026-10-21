@@ -21,7 +21,7 @@
 			await session.login(username, password);
 			await goto('/');
 		} catch (err) {
-			error = err instanceof ApiError ? err.message : 'Could not reach the planner. Is it running?';
+			error = err instanceof ApiError ? err.message : 'Something went wrong. Try again.';
 		} finally {
 			busy = false;
 		}

@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
@@ -6,9 +7,24 @@ from fastapi.responses import FileResponse
 
 from .auth import get_current_user
 from .config import DEFAULT_SECRET_KEY, get_settings
-from .routers import auth, calendar, events, expenses, health, ideas, meta, stats, todos, workouts
+from .routers import (
+    auth,
+    calendar,
+    events,
+    expenses,
+    export,
+    health,
+    ideas,
+    meta,
+    stats,
+    todos,
+    workouts,
+)
 
 logger = logging.getLogger("life_planner")
+
+# Not in every system's MIME table; browsers want the right type for PWA manifests.
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 
 def _mount_frontend(app: FastAPI, static_dir: Path) -> None:
@@ -50,6 +66,7 @@ def create_app() -> FastAPI:
         workouts.exercises_router,
         workouts.router,
         ideas.router,
+        export.router,
     ):
         api.include_router(router, dependencies=[Depends(get_current_user)])
     app.include_router(api)

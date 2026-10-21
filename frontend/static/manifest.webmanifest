@@ -1,0 +1,22 @@
+{
+	"name": "Life Planner",
+	"short_name": "Planner",
+	"description": "Workouts, expenses, to-dos, ideas and plans, on your own Raspberry Pi.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "any",
+	"background_color": "#faf7f0",
+	"theme_color": "#faf7f0",
+	"icons": [
+		{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+		{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+		{ "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+	],
+	"shortcuts": [
+		{ "name": "Add to-do", "url": "/todos?add=todo", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+		{ "name": "Add expense", "url": "/expenses?add=expense", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+		{ "name": "Log workout", "url": "/workouts?add=workout", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+		{ "name": "Jot idea", "url": "/ideas?add=idea", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+	]
+}

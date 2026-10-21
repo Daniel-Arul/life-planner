@@ -1,4 +1,4 @@
-import { api, ApiError } from './api';
+import { api, ApiError, SESSION_EXPIRED, UNREACHABLE } from './api';
 
 export type User = { id: number; username: string };
 
@@ -10,7 +10,8 @@ class Session {
 		try {
 			this.user = await api.get<User>('/auth/me');
 		} catch (err) {
-			if (!(err instanceof ApiError && err.status === 401)) throw err;
+			// Not logged in, or the Pi can't be reached (the layout shows which).
+			if (!(err instanceof ApiError && (err.status === 401 || err.status === UNREACHABLE))) throw err;
 			this.user = null;
 		} finally {
 			this.loaded = true;
@@ -28,3 +29,9 @@ class Session {
 }
 
 export const session = new Session();
+
+if (typeof window !== 'undefined') {
+	window.addEventListener(SESSION_EXPIRED, () => {
+		session.user = null; // the root layout redirects to /login
+	});
+}

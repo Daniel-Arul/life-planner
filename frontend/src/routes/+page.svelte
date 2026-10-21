@@ -29,6 +29,9 @@
 
 	const TODO_LIMIT = 6;
 
+	const hour = new Date().getHours();
+	const greeting = hour < 5 ? 'Up late' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
 	const today = new Date().toLocaleDateString([], {
 		weekday: 'long',
 		month: 'long',
@@ -94,7 +97,7 @@
 
 <div class="dashboard">
 	<header class="greeting">
-		<h1>Hello, {session.user?.username}</h1>
+		<h1>{greeting}, {session.user?.username}</h1>
 		<p>{today}</p>
 	</header>
 

@@ -29,7 +29,15 @@
 
 <dialog
 	bind:this={dialog}
-	onclose={onclose}
+	oncancel={(e) => {
+		// Esc: update our state right away and let the effect close the dialog, so
+		// the form never lingers (focused) after the dialog itself has closed.
+		e.preventDefault();
+		onclose();
+	}}
+	onclose={() => {
+		if (open) onclose();
+	}}
 	onclick={(e) => {
 		// Clicking the backdrop (the dialog element itself) closes it.
 		if (e.target === dialog) onclose();

@@ -8,7 +8,7 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Docker Compose for deployment.
 - A 64-bit OS on a Pi 4 or Pi 5.
 
-**Status:** milestones 1–5 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets; workouts; ideas). Next: milestone 6, dashboard polish, PWA and export.
+**Status:** milestones 1–6 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets; workouts; ideas; PWA, offline handling and export). Next: milestone 7, deploying to the Pi.
 
 **Changes from the original plan so far:**
 - On laptops, edit forms open as a modal window rather than a master–detail side pane, so every page shares one editor.
@@ -23,6 +23,9 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Workouts on the calendar open the editor rather than dragging. The log form has "Same as last time" to copy a previous session's exercises.
 - Workout charts use a deeper mint (`#2f9e78`, which passes 3:1 contrast). Spending and workouts share one column-chart component; exercise progress uses a line chart.
 - The pixel font no longer draws digits (its 5/S and 3/8 are too alike), so numbers everywhere fall back to IBM Plex Mono.
+- PWA: the service worker caches only the app itself (code, styles, fonts, icons) and never `/api` data, so pages always show live data from the Pi. Offline, the cached app opens and shows a "can't reach your planner, check Tailscale" screen or banner instead of a browser error. Home-screen icon shortcuts (long-press) open the add forms via `?add=todo|expense|workout|idea`.
+- Export: `/api/export.json` (everything) and `/api/export/{todos,events,expenses,workouts,ideas}.csv`, linked from Settings. There's no import yet; the nightly SQLite backup in milestone 7 is the restore path.
+- An expired session (after 30 days) sends you back to the login page.
 - Idea tags are stored as a JSON list on the idea (normalized to lowercase, no `#`) rather than in a separate table. "Active" means New or Exploring. The Markdown editor is a plain textarea with Write/Preview tabs, rendered with `marked` and sanitized with DOMPurify (links open in a new tab).
 
 ---
