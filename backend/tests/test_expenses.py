@@ -116,4 +116,4 @@ def test_config_reports_currency(api, monkeypatch):
 
     monkeypatch.setenv("PLANNER_CURRENCY", "gbp")
     get_settings.cache_clear()
-    assert api.get("/api/config").json() == {"currency": "GBP"}
+    assert api.get("/api/config").json() == {"currency": "GBP", "units": "metric"}

@@ -8,17 +8,21 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Docker Compose for deployment.
 - A 64-bit OS on a Pi 4 or Pi 5.
 
-**Status:** milestones 1–3 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets). Next: milestone 4, workouts.
+**Status:** milestones 1–4 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets; workouts). Next: milestone 5, ideas.
 
 **Changes from the original plan so far:**
 - On laptops, edit forms open as a modal window rather than a master–detail side pane, so every page shares one editor.
 - Editing a recurring event changes the whole series; occurrences of a series can't be dragged individually (one-off exceptions could come later).
 - Event times are stored as local wall-clock times with no timezone, so recurring events keep their local time across daylight-saving changes.
-- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t`/`e` (go to Home, Calendar, To-dos or Expenses) work now.
+- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t`/`e`/`w` (go to Home, Calendar, To-dos, Expenses or Workouts) work now.
 - Charts are small hand-built SVG components instead of Chart.js/LayerChart, keeping the bundle light and the look consistent. Chart marks use a deeper peach (`#e8894b`), because the pastel is too faint to read as a mark.
 - Expense categories have no color of their own. Expense charts are a single series in the module's peach, and over-budget shows as a status color with an icon and text.
 - The currency is set by `PLANNER_CURRENCY` in `.env` (default CAD) and served to the app from `/api/config`. The expense date field is `spent_on`.
 - The migration seeds starter categories (Groceries, Eating out, Transport, Housing, Bills, Health, Fun, Shopping, Other). Budgets are edited in Settings.
+- Workouts store one row per exercise: sets × reps at a weight, or distance plus time for cardio (table `workout_entry`). Typing a new exercise name creates it. Units come from `PLANNER_UNITS` (metric = kg/km, the default; imperial = lb/mi), and stored numbers are never converted.
+- Workouts on the calendar open the editor rather than dragging. The log form has "Same as last time" to copy a previous session's exercises.
+- Workout charts use a deeper mint (`#2f9e78`, which passes 3:1 contrast). Spending and workouts share one column-chart component; exercise progress uses a line chart.
+- The pixel font no longer draws digits (its 5/S and 3/8 are too alike), so numbers everywhere fall back to IBM Plex Mono.
 
 ---
 

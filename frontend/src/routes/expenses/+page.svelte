@@ -4,13 +4,13 @@
 	import { tick } from 'svelte';
 	import { ApiError } from '$lib/api';
 	import { categories as categoriesApi, expenses as expensesApi } from '$lib/data';
-	import { addMonths, formatDay, formatMonth, toMonthStr, todayStr } from '$lib/dates';
+	import { addMonths, formatDay, formatMonth, parseLocal, toMonthStr, todayStr } from '$lib/dates';
 	import { editor } from '$lib/editor.svelte';
 	import { formatMoney, parseAmount } from '$lib/money';
 	import type { Expense, ExpenseCategory, ExpenseStats } from '$lib/types';
 	import BudgetMeter from '$lib/ui/BudgetMeter.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import DailySpendChart from '$lib/ui/DailySpendChart.svelte';
+	import ColumnChart from '$lib/ui/ColumnChart.svelte';
 	import EmptyState from '$lib/ui/EmptyState.svelte';
 	import ProgressBar from '$lib/ui/ProgressBar.svelte';
 	import Window from '$lib/ui/Window.svelte';
@@ -164,7 +164,19 @@
 						<BudgetMeter spent={stats.total_cents} budget={stats.budget_cents} label="Monthly budget" />
 					{/if}
 					<h3 class="chart-title">Per day</h3>
-					<DailySpendChart days={stats.daily} {loading} onselect={showDay} />
+					<ColumnChart
+						columns={stats.daily.map((d) => ({
+							key: d.date,
+							value: d.total_cents,
+							label: formatDay(d.date),
+							tick: String(parseLocal(d.date).getDate())
+						}))}
+						formatValue={(v) => formatMoney(v)}
+						formatTick={(v) => formatMoney(v, { compact: true })}
+						label="Spending per day"
+						{loading}
+						onselect={showDay}
+					/>
 				{/if}
 			</Window>
 		</div>
@@ -472,9 +484,7 @@
 		border-bottom: 2px solid var(--color-ink);
 	}
 
-	/* Pixel digits are ambiguous (5 vs S, 3 vs 8); money always uses the mono face. */
 	.day-head .tabular {
-		font-family: var(--font-mono);
 		font-weight: 600;
 	}
 

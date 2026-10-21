@@ -1,5 +1,5 @@
 import { api } from './api';
-import { toLocalISO } from './dates';
+import { toLocalISO, todayStr } from './dates';
 import type {
 	CalendarItem,
 	EventInput,
@@ -7,9 +7,15 @@ import type {
 	ExpenseCategory,
 	ExpenseInput,
 	ExpenseStats,
+	Exercise,
 	PlannerEvent,
+	ProgressPoint,
 	Todo,
-	TodoInput
+	TodoInput,
+	Workout,
+	WorkoutInput,
+	WorkoutKind,
+	WorkoutStats
 } from './types';
 
 export const todos = {
@@ -51,6 +57,25 @@ export const categories = {
 	update: (id: number, changes: Partial<Pick<ExpenseCategory, 'name' | 'monthly_budget_cents'>>) =>
 		api.patch<ExpenseCategory>(`/expense-categories/${id}`, changes),
 	remove: (id: number) => api.delete(`/expense-categories/${id}`)
+};
+
+export const workouts = {
+	list: (limit = 50) => api.get<Workout[]>(`/workouts?limit=${limit}`),
+	get: (id: number) => api.get<Workout>(`/workouts/${id}`),
+	create: (input: WorkoutInput) => api.post<Workout>('/workouts', input),
+	replace: (id: number, input: WorkoutInput) => api.put<Workout>(`/workouts/${id}`, input),
+	remove: (id: number) => api.delete(`/workouts/${id}`),
+	// Pass the browser's date so "this week" matches the user's calendar.
+	stats: (weeks = 12) => api.get<WorkoutStats>(`/stats/workouts?weeks=${weeks}&today=${todayStr()}`),
+	progress: (exerciseId: number) => api.get<ProgressPoint[]>(`/stats/exercises/${exerciseId}`)
+};
+
+export const exercises = {
+	list: () => api.get<Exercise[]>('/exercises'),
+	create: (name: string, kind: WorkoutKind) => api.post<Exercise>('/exercises', { name, kind }),
+	update: (id: number, changes: Partial<Pick<Exercise, 'name' | 'kind'>>) =>
+		api.patch<Exercise>(`/exercises/${id}`, changes),
+	remove: (id: number) => api.delete(`/exercises/${id}`)
 };
 
 export function fetchCalendar(start: Date, end: Date) {

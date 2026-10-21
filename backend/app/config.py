@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -19,6 +20,8 @@ class Settings(BaseSettings):
     session_days: int = 30
     # ISO 4217 code used to display money, e.g. CAD, USD, EUR.
     currency: str = "CAD"
+    # Workout units: metric = kg and km, imperial = lb and mi.
+    units: Literal["metric", "imperial"] = "metric"
     # Directory holding the built SvelteKit app; unset in dev (Vite serves it).
     static_dir: Path | None = None
 

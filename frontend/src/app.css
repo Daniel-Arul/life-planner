@@ -1,5 +1,30 @@
 @import 'tailwindcss';
 
+/*
+ * The pixel face for headings and labels, minus the digits: Pixelify's 5/S and
+ * 3/8 are too alike to read amounts and dates, so U+0030-0039 is left out and
+ * digits fall through to IBM Plex Mono in the --font-pixel stack.
+ */
+@font-face {
+	font-family: 'Pixel UI';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 400;
+	src: url('../node_modules/@fontsource/pixelify-sans/files/pixelify-sans-latin-400-normal.woff2') format('woff2');
+	unicode-range: U+0000-002F, U+003A-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+		U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Pixel UI';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 500;
+	src: url('../node_modules/@fontsource/pixelify-sans/files/pixelify-sans-latin-500-normal.woff2') format('woff2');
+	unicode-range: U+0000-002F, U+003A-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+		U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Design tokens. `static` emits every variable so component <style> blocks can use them. */
 @theme static {
 	--color-paper: #faf7f0;
@@ -19,8 +44,9 @@
 	/* Chart marks: pastels are too faint on the surface, so charts use a deeper step
 	   of the module hue (validated: lightness band + chroma floor pass). */
 	--color-peach-deep: #e8894b;
+	--color-mint-deep: #2f9e78;
 
-	--font-pixel: 'Pixelify Sans', ui-monospace, monospace;
+	--font-pixel: 'Pixel UI', 'IBM Plex Mono', ui-monospace, monospace;
 	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
 	--shadow-hard: 4px 4px 0 var(--color-ink);

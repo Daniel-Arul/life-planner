@@ -17,6 +17,7 @@
 	const KINDS: { kind: Kind; label: string; accent: string }[] = [
 		{ kind: 'event', label: 'Events', accent: 'lavender' },
 		{ kind: 'todo', label: 'To-dos', accent: 'butter' },
+		{ kind: 'workout', label: 'Workouts', accent: 'mint' },
 		{ kind: 'expense', label: 'Spending', accent: 'peach' }
 	];
 
@@ -29,7 +30,7 @@
 	const ec = $derived(calendarRef as CalendarApi | undefined);
 	let items = $state<CalendarItem[]>([]);
 	let range = $state<{ start: Date; end: Date } | null>(null);
-	let shown = $state<Record<Kind, boolean>>({ event: true, todo: true, expense: true });
+	let shown = $state<Record<Kind, boolean>>({ event: true, todo: true, expense: true, workout: true });
 	let error = $state<string | null>(null);
 
 	const options = $state<Calendar.Options>({
@@ -87,7 +88,12 @@
 				goto(`/expenses?month=${item.start.slice(0, 7)}&day=${item.start.slice(0, 10)}`);
 				return;
 			}
-			const open = item.kind === 'event' ? editor.editEvent(item.source_id) : editor.editTodo(item.source_id);
+			const open =
+				item.kind === 'event'
+					? editor.editEvent(item.source_id)
+					: item.kind === 'workout'
+						? editor.editWorkout(item.source_id)
+						: editor.editTodo(item.source_id);
 			open.catch((err) => (error = message(err, 'Could not open that item.')));
 		},
 		eventDrop: async (info) => {
@@ -167,8 +173,9 @@
 				backgroundColor: `var(--color-${item.color})`,
 				textColor: 'var(--color-ink)',
 				// Repeats are edited through the form, so their occurrences don't drag;
-				// spending badges are daily totals, not movable items.
-				startEditable: !item.recurring && item.kind !== 'expense',
+				// spending badges are daily totals, not movable items. Workouts move by
+				// editing their date (their entries make dragging feel too casual).
+				startEditable: !item.recurring && (item.kind === 'event' || item.kind === 'todo'),
 				durationEditable: item.kind === 'event' && !item.recurring,
 				classNames: [`kind-${item.kind}`, ...(item.done ? ['is-done'] : [])],
 				extendedProps: { item }
@@ -219,6 +226,9 @@
 			{#snippet eventContent({ event, timeText }: Calendar.EventContentInfo)}
 				{@const item = event.extendedProps.item as CalendarItem}
 				<span class="ev">
+					{#if item.kind === 'workout'}
+						<span class="ev-icon" aria-hidden="true">▮▬▮</span>
+					{/if}
 					{#if item.kind === 'todo'}
 						<span class="tick" class:checked={item.done} aria-label={item.done ? 'done' : 'to-do'}></span>
 					{/if}
@@ -372,5 +382,11 @@
 
 	.repeat {
 		flex-shrink: 0;
+	}
+
+	.ev-icon {
+		flex-shrink: 0;
+		font-size: 0.6rem;
+		letter-spacing: -0.1em;
 	}
 </style>

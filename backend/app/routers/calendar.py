@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlmodel import col, or_, select
 
 from ..deps import SessionDep
-from ..models import Event, Expense, Todo
+from ..models import Event, Expense, Todo, Workout
 from ..recurrence import occurrences
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
@@ -18,11 +18,12 @@ MAX_RANGE = timedelta(days=400)
 EVENT_COLOR = "lavender"
 TODO_COLOR = "butter"
 EXPENSE_COLOR = "peach"
+WORKOUT_COLOR = "mint"
 
 
 class CalendarItem(BaseModel):
     id: str
-    kind: Literal["event", "todo", "expense"]
+    kind: Literal["event", "todo", "expense", "workout"]
     source_id: int
     title: str
     start: NaiveDatetime
@@ -49,6 +50,7 @@ def calendar(
         _event_items(session, start, end)
         + _todo_items(session, start, end)
         + _expense_items(session, start, end)
+        + _workout_items(session, start, end)
     )
     items.sort(key=lambda item: (item.start, not item.all_day, item.title))
     return items
@@ -137,6 +139,33 @@ def _expense_items(session: SessionDep, start: datetime, end: datetime) -> list[
                 all_day=True,
                 color=EXPENSE_COLOR,
                 amount_cents=total,
+            )
+        )
+    return items
+
+
+def _workout_items(session: SessionDep, start: datetime, end: datetime) -> list[CalendarItem]:
+    workouts = session.exec(
+        select(Workout).where(
+            Workout.performed_on >= start.date(),
+            Workout.performed_on < end.date() + timedelta(days=1),
+        )
+    )
+    items = []
+    for workout in workouts:
+        day_start = datetime.combine(workout.performed_on, time())
+        if day_start >= end or day_start + timedelta(days=1) <= start:
+            continue
+        items.append(
+            CalendarItem(
+                id=f"workout-{workout.id}",
+                kind="workout",
+                source_id=workout.id,
+                title=workout.title or f"{workout.kind.capitalize()} workout",
+                start=day_start,
+                end=day_start + timedelta(days=1),
+                all_day=True,
+                color=WORKOUT_COLOR,
             )
         )
     return items

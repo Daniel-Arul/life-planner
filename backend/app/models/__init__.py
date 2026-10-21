@@ -12,6 +12,18 @@ from .expense import (
 )
 from .todo import Todo, TodoCreate, TodoRead, TodoReorder, TodoUpdate
 from .user import User
+from .workout import (
+    EntryInput,
+    EntryRead,
+    Exercise,
+    ExerciseCreate,
+    ExerciseRead,
+    ExerciseUpdate,
+    Workout,
+    WorkoutEntry,
+    WorkoutInput,
+    WorkoutRead,
+)
 
 __all__ = [
     "Event",
@@ -32,4 +44,14 @@ __all__ = [
     "TodoReorder",
     "TodoUpdate",
     "User",
+    "EntryInput",
+    "EntryRead",
+    "Exercise",
+    "ExerciseCreate",
+    "ExerciseRead",
+    "ExerciseUpdate",
+    "Workout",
+    "WorkoutEntry",
+    "WorkoutInput",
+    "WorkoutRead",
 ]

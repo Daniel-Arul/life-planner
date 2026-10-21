@@ -43,7 +43,7 @@ export type EventInput = Omit<PlannerEvent, 'id'>;
 
 export type CalendarItem = {
 	id: string;
-	kind: 'event' | 'todo' | 'expense';
+	kind: 'event' | 'todo' | 'expense' | 'workout';
 	source_id: number;
 	title: string;
 	start: string;
@@ -82,4 +82,64 @@ export type ExpenseStats = {
 	budget_cents: number | null;
 	categories: { id: number | null; name: string; total_cents: number; budget_cents: number | null }[];
 	daily: { date: string; total_cents: number }[];
+};
+
+export type WorkoutKind = 'strength' | 'cardio' | 'mobility' | 'other';
+
+export const WORKOUT_KINDS: { value: WorkoutKind; label: string }[] = [
+	{ value: 'strength', label: 'Strength' },
+	{ value: 'cardio', label: 'Cardio' },
+	{ value: 'mobility', label: 'Mobility' },
+	{ value: 'other', label: 'Other' }
+];
+
+export type Exercise = {
+	id: number;
+	name: string;
+	kind: WorkoutKind;
+	times_logged: number;
+	last_done: string | null;
+};
+
+/** Weight and distance are in the configured units (kg/km or lb/mi). */
+export type WorkoutEntry = {
+	id: number;
+	exercise_id: number;
+	exercise_name: string;
+	sets: number;
+	reps: number | null;
+	weight: number | null;
+	distance: number | null;
+	duration_s: number | null;
+};
+
+export type Workout = {
+	id: number;
+	performed_on: string;
+	kind: WorkoutKind;
+	title: string;
+	duration_min: number | null;
+	notes: string;
+	entries: WorkoutEntry[];
+};
+
+export type WorkoutInput = Omit<Workout, 'id' | 'entries'> & {
+	entries: (Omit<WorkoutEntry, 'id' | 'exercise_id' | 'exercise_name'> & { exercise_name: string })[];
+};
+
+export type WorkoutStats = {
+	weeks: { week_start: string; workouts: number; minutes: number; volume: number }[];
+	this_week_workouts: number;
+	this_week_minutes: number;
+	streak_weeks: number;
+};
+
+export type ProgressPoint = {
+	date: string;
+	workout_id: number;
+	best_weight: number | null;
+	max_reps: number | null;
+	volume: number;
+	distance: number | null;
+	duration_s: number | null;
 };

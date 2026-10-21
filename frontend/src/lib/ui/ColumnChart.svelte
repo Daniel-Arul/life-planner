@@ -1,16 +1,30 @@
 <script lang="ts">
-	import { formatDay, parseLocal } from '$lib/dates';
-	import { formatMoney } from '$lib/money';
+	import { niceTicks, type Column } from '$lib/charts';
 
 	let {
-		days,
+		columns,
+		formatValue,
+		formatTick = formatValue,
+		label,
+		color = 'var(--color-peach-deep)',
+		integer = false,
+		showTick = (i: number) => i % 7 === 0,
 		loading = false,
 		onselect
 	}: {
-		days: { date: string; total_cents: number }[];
+		columns: Column[];
+		formatValue: (v: number) => string;
+		/** Compact formatter for y-axis ticks and the peak label. */
+		formatTick?: (v: number) => string;
+		/** Accessible name, e.g. "Spending per day". */
+		label: string;
+		color?: string;
+		/** Values are counts: keep ticks on whole numbers. */
+		integer?: boolean;
+		showTick?: (i: number) => boolean;
 		/** Keep the previous render dimmed while new data loads. */
 		loading?: boolean;
-		onselect?: (date: string) => void;
+		onselect?: (key: string) => void;
 	} = $props();
 
 	// Layout in CSS pixels, measured from the container.
@@ -22,53 +36,46 @@
 	let active = $state<number | null>(null);
 
 	const plotWidth = $derived(Math.max(width - MARGIN.left - MARGIN.right, 50));
-	const band = $derived(plotWidth / Math.max(days.length, 1));
+	const band = $derived(plotWidth / Math.max(columns.length, 1));
 	// Never fill the slot: cap at 24px and leave at least a 2px gap between bars.
 	const barWidth = $derived(Math.max(2, Math.min(MAX_BAR, band - 2)));
-	const peak = $derived(Math.max(0, ...days.map((d) => d.total_cents)));
-	const yMax = $derived(niceCeil(peak));
-	const ticks = $derived([0, yMax / 2, yMax]);
-	const peakIndex = $derived(peak > 0 ? days.findIndex((d) => d.total_cents === peak) : -1);
+	const peak = $derived(Math.max(0, ...columns.map((c) => c.value)));
+	const ticks = $derived(niceTicks(0, peak || (integer ? 2 : 1), 2, integer));
+	const yMax = $derived(ticks.at(-1) ?? 1);
+	const peakIndex = $derived(peak > 0 ? columns.findIndex((c) => c.value === peak) : -1);
+	const activeColumn = $derived(active !== null ? columns[active] : null);
 
-	const y = (cents: number) => MARGIN.top + PLOT_HEIGHT - (cents / yMax) * PLOT_HEIGHT;
+	const y = (v: number) => MARGIN.top + PLOT_HEIGHT - (v / yMax) * PLOT_HEIGHT;
 	const bandX = (i: number) => MARGIN.left + i * band;
 
-	/** Round up to a clean axis maximum: 1, 2, 2.5 or 5 times a power of ten. */
-	function niceCeil(cents: number): number {
-		if (cents <= 0) return 1000;
-		const magnitude = 10 ** Math.floor(Math.log10(cents));
-		const step = [1, 2, 2.5, 5, 10].find((s) => s * magnitude >= cents) ?? 10;
-		return step * magnitude;
-	}
-
-	function onkeydown(e: KeyboardEvent) {
-		if (!days.length) return;
-		const current = active ?? -1;
-		if (e.key === 'ArrowRight') active = Math.min(days.length - 1, current + 1);
-		else if (e.key === 'ArrowLeft') active = Math.max(0, current < 0 ? days.length - 1 : current - 1);
-		else if (e.key === 'Enter' && active !== null) onselect?.(days[active].date);
-		else return;
-		e.preventDefault();
-	}
-
-	const activeDay = $derived(active !== null ? days[active] : null);
 	const tooltipLeft = $derived(
 		active !== null ? Math.min(Math.max(bandX(active) + band / 2, 70), width - 70) : 0
 	);
+
+	function onkeydown(e: KeyboardEvent) {
+		if (!columns.length) return;
+		const current = active ?? -1;
+		if (e.key === 'ArrowRight') active = Math.min(columns.length - 1, current + 1);
+		else if (e.key === 'ArrowLeft') active = Math.max(0, current < 0 ? columns.length - 1 : current - 1);
+		else if (e.key === 'Enter' && active !== null) onselect?.(columns[active].key);
+		else return;
+		e.preventDefault();
+	}
 </script>
 
 <div
 	class="chart"
 	class:loading
+	style:--mark={color}
 	bind:clientWidth={width}
 	role="slider"
-	aria-label="Spending per day"
+	aria-label={label}
 	aria-valuemin={1}
-	aria-valuemax={days.length}
+	aria-valuemax={columns.length}
 	aria-valuenow={(active ?? 0) + 1}
-	aria-valuetext={activeDay
-		? `${formatDay(activeDay.date)}: ${formatMoney(activeDay.total_cents)}`
-		: 'Use left and right arrows to read each day'}
+	aria-valuetext={activeColumn
+		? `${activeColumn.label}: ${formatValue(activeColumn.value)}`
+		: 'Use left and right arrows to read each value'}
 	tabindex="0"
 	{onkeydown}
 	onblur={() => (active = null)}
@@ -76,70 +83,67 @@
 >
 	<svg width={width} height={MARGIN.top + PLOT_HEIGHT + MARGIN.bottom} aria-hidden="true">
 		<!-- Gridlines + y ticks: hairline, solid, recessive. -->
-		{#each ticks as tick (tick)}
+		{#each ticks as t (t)}
 			<line
 				class="grid"
-				class:baseline={tick === 0}
+				class:baseline={t === 0}
 				x1={MARGIN.left}
 				x2={width - MARGIN.right}
-				y1={y(tick) + 0.5}
-				y2={y(tick) + 0.5}
+				y1={y(t) + 0.5}
+				y2={y(t) + 0.5}
 			/>
-			<text class="tick tabular" x={MARGIN.left - 6} y={y(tick)} dy="0.32em" text-anchor="end">
-				{formatMoney(tick, { compact: true })}
+			<text class="tick tabular" x={MARGIN.left - 6} y={y(t)} dy="0.32em" text-anchor="end">
+				{formatTick(t)}
 			</text>
 		{/each}
 
-		{#each days as day, i (day.date)}
-			{#if day.total_cents > 0}
+		{#each columns as column, i (column.key)}
+			{#if column.value > 0}
 				<rect
 					class="bar"
 					class:active={active === i}
 					x={bandX(i) + (band - barWidth) / 2}
-					y={y(day.total_cents)}
+					y={y(column.value)}
 					width={barWidth}
-					height={Math.max(1, MARGIN.top + PLOT_HEIGHT - y(day.total_cents))}
+					height={Math.max(1, MARGIN.top + PLOT_HEIGHT - y(column.value))}
 				/>
 			{/if}
 			<!-- Hit target: the whole column, bigger than the bar. -->
 			<rect
 				class="hit"
+				class:clickable={!!onselect}
 				role="presentation"
 				x={bandX(i)}
 				y={MARGIN.top}
 				width={band}
 				height={PLOT_HEIGHT}
 				onpointerenter={() => (active = i)}
-				onclick={() => onselect?.(day.date)}
+				onclick={() => onselect?.(column.key)}
 			/>
+			{#if showTick(i)}
+				<text class="tick tabular" x={bandX(i) + band / 2} y={MARGIN.top + PLOT_HEIGHT + 16} text-anchor="middle">
+					{column.tick}
+				</text>
+			{/if}
 		{/each}
 
-		<!-- One direct label: the peak day. -->
+		<!-- One direct label: the peak. -->
 		{#if peakIndex >= 0 && active === null}
 			<text
 				class="peak tabular"
 				x={bandX(peakIndex) + band / 2}
 				y={y(peak) - 6}
-				text-anchor={peakIndex < 3 ? 'start' : peakIndex > days.length - 4 ? 'end' : 'middle'}
+				text-anchor={peakIndex < 2 ? 'start' : peakIndex > columns.length - 3 ? 'end' : 'middle'}
 			>
-				{formatMoney(peak, { compact: true })}
+				{formatTick(peak)}
 			</text>
 		{/if}
-
-		<!-- Weekly day-of-month labels. -->
-		{#each days as day, i (day.date)}
-			{#if i % 7 === 0}
-				<text class="tick tabular" x={bandX(i) + band / 2} y={MARGIN.top + PLOT_HEIGHT + 16} text-anchor="middle">
-					{parseLocal(day.date).getDate()}
-				</text>
-			{/if}
-		{/each}
 	</svg>
 
-	{#if activeDay}
+	{#if activeColumn}
 		<div class="tooltip" style:left="{tooltipLeft}px" aria-hidden="true">
-			<strong class="tabular">{formatMoney(activeDay.total_cents)}</strong>
-			<span>{formatDay(activeDay.date)}</span>
+			<strong class="tabular">{formatValue(activeColumn.value)}</strong>
+			<span>{activeColumn.label}</span>
 		</div>
 	{/if}
 </div>
@@ -154,14 +158,14 @@
 		opacity: 0.5;
 	}
 
-	svg {
-		display: block;
-		overflow: visible;
-	}
-
 	.chart:focus-visible {
 		outline: 2px dashed var(--color-ink);
 		outline-offset: 4px;
+	}
+
+	svg {
+		display: block;
+		overflow: visible;
 	}
 
 	.grid {
@@ -179,15 +183,18 @@
 	}
 
 	.bar {
-		fill: var(--color-peach-deep);
+		fill: var(--mark);
 	}
 
 	.bar.active {
-		fill: color-mix(in srgb, var(--color-peach-deep) 70%, var(--color-ink));
+		fill: color-mix(in srgb, var(--mark) 70%, var(--color-ink));
 	}
 
 	.hit {
 		fill: transparent;
+	}
+
+	.hit.clickable {
 		cursor: pointer;
 	}
 

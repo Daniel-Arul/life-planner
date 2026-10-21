@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import CategoryManager from '$lib/components/CategoryManager.svelte';
+	import ExerciseManager from '$lib/components/ExerciseManager.svelte';
 	import { session } from '$lib/session.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Window from '$lib/ui/Window.svelte';
@@ -29,6 +30,10 @@
 
 	<Window title="Expense categories" accent="peach">
 		<CategoryManager />
+	</Window>
+
+	<Window title="Exercises" accent="mint">
+		<ExerciseManager />
 	</Window>
 </div>
 

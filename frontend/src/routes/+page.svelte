@@ -1,11 +1,12 @@
 <script lang="ts">
 	import TodoRow from '$lib/components/TodoRow.svelte';
-	import { expenses as expensesApi, fetchCalendar, todos as todosApi } from '$lib/data';
-	import { addDays, daysFromToday, formatTime, parseLocal, toMonthStr, todayStr } from '$lib/dates';
+	import { expenses as expensesApi, fetchCalendar, todos as todosApi, workouts as workoutsApi } from '$lib/data';
+	import { addDays, daysFromToday, formatDay, formatTime, parseLocal, toMonthStr, todayStr } from '$lib/dates';
 	import { editor } from '$lib/editor.svelte';
 	import { session } from '$lib/session.svelte';
 	import { formatMoney } from '$lib/money';
-	import type { CalendarItem, ExpenseStats, Todo } from '$lib/types';
+	import type { CalendarItem, ExpenseStats, Todo, Workout, WorkoutStats } from '$lib/types';
+	import { kindLabel } from '$lib/units';
 	import BudgetMeter from '$lib/ui/BudgetMeter.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import EmptyState from '$lib/ui/EmptyState.svelte';
@@ -22,6 +23,8 @@
 	let agenda = $state<CalendarItem[]>([]);
 	let openTodos = $state<Todo[]>([]);
 	let spending = $state<ExpenseStats | null>(null);
+	let training = $state<WorkoutStats | null>(null);
+	let thisWeek = $state<Workout[]>([]);
 	let loaded = $state(false);
 
 	// Most pressing first: overdue, then due today, then by the list's own order.
@@ -44,10 +47,15 @@
 		Promise.all([
 			fetchCalendar(start, addDays(start, 1)),
 			todosApi.list('open'),
-			expensesApi.stats(toMonthStr(start))
+			expensesApi.stats(toMonthStr(start)),
+			workoutsApi.stats(1),
+			workoutsApi.list(7)
 		]).then(
-			([items, todos, stats]) => {
+			([items, todos, stats, wStats, recentWorkouts]) => {
 				spending = stats;
+				training = wStats;
+				const monday = wStats.weeks[0]?.week_start ?? todayStr();
+				thisWeek = recentWorkouts.filter((w) => w.performed_on >= monday);
 				// To-dos have their own window, so Today shows plans only.
 				agenda = items.filter((i) => i.kind === 'event');
 				openTodos = todos;
@@ -117,7 +125,32 @@
 		</Window>
 
 		<Window title="This week's workouts" accent="mint">
-			<EmptyState message="No workouts logged" hint="Workouts arrive in milestone 4." />
+			{#if training}
+				<p class="spent">
+					<span class="spent-value">{training.this_week_workouts}</span>
+					{training.this_week_workouts === 1 ? 'workout' : 'workouts'}
+					{#if training.this_week_minutes}· {training.this_week_minutes} min{/if}
+					{#if training.streak_weeks > 1}· {training.streak_weeks}-week streak{/if}
+				</p>
+			{/if}
+			{#if thisWeek.length}
+				<ul class="top-cats">
+					{#each thisWeek as w (w.id)}
+						<li>
+							<button type="button" class="plain" onclick={() => editor.open({ kind: 'workout', workout: w })}>
+								{w.title || `${kindLabel(w.kind)} workout`}
+							</button>
+							<span>{formatDay(w.performed_on)}</span>
+						</li>
+					{/each}
+				</ul>
+			{:else if training}
+				<EmptyState message="No workouts yet this week" />
+			{/if}
+			<div class="window-actions">
+				<Button onclick={() => editor.open({ kind: 'workout', date: todayStr() })}>+ Workout</Button>
+				<a class="more" href="/workouts">Workouts →</a>
+			</div>
 		</Window>
 		<Window title="Month-to-date spending" accent="peach">
 			{#if spending}
@@ -238,6 +271,17 @@
 		justify-content: space-between;
 		padding-bottom: 0.3rem;
 		border-bottom: 2px dotted var(--color-grid);
+	}
+
+	.plain {
+		padding: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		background: none;
+		border: 0;
+		text-decoration: underline dotted;
+		cursor: pointer;
 	}
 
 	.window-actions {

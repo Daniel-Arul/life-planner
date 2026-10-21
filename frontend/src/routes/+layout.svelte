@@ -1,6 +1,4 @@
 <script lang="ts">
-	import '@fontsource/pixelify-sans/400.css';
-	import '@fontsource/pixelify-sans/500.css';
 	import '@fontsource/ibm-plex-mono/400.css';
 	import '@fontsource/ibm-plex-mono/600.css';
 	import '../app.css';
