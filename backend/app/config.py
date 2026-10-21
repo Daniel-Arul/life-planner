@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     # Set PLANNER_COOKIE_SECURE=false for plain-HTTP local testing.
     cookie_secure: bool = True
     session_days: int = 30
+    # ISO 4217 code used to display money, e.g. CAD, USD, EUR.
+    currency: str = "CAD"
     # Directory holding the built SvelteKit app; unset in dev (Vite serves it).
     static_dir: Path | None = None
 

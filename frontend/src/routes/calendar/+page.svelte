@@ -2,10 +2,12 @@
 	import { Calendar, DayGrid, Interaction, List, TimeGrid } from '@event-calendar/core';
 	import '@event-calendar/core/index.css';
 	import { MediaQuery } from 'svelte/reactivity';
+	import { goto } from '$app/navigation';
 	import { ApiError } from '$lib/api';
 	import { events as eventsApi, fetchCalendar, todos as todosApi } from '$lib/data';
 	import { addDays, parseLocal, toDateStr, toLocalISO, toTimeStr } from '$lib/dates';
 	import { editor } from '$lib/editor.svelte';
+	import { formatMoney } from '$lib/money';
 	import type { CalendarItem } from '$lib/types';
 	import Window from '$lib/ui/Window.svelte';
 
@@ -14,7 +16,8 @@
 
 	const KINDS: { kind: Kind; label: string; accent: string }[] = [
 		{ kind: 'event', label: 'Events', accent: 'lavender' },
-		{ kind: 'todo', label: 'To-dos', accent: 'butter' }
+		{ kind: 'todo', label: 'To-dos', accent: 'butter' },
+		{ kind: 'expense', label: 'Spending', accent: 'peach' }
 	];
 
 	const laptop = new MediaQuery('min-width: 1024px');
@@ -26,7 +29,7 @@
 	const ec = $derived(calendarRef as CalendarApi | undefined);
 	let items = $state<CalendarItem[]>([]);
 	let range = $state<{ start: Date; end: Date } | null>(null);
-	let shown = $state<Record<Kind, boolean>>({ event: true, todo: true });
+	let shown = $state<Record<Kind, boolean>>({ event: true, todo: true, expense: true });
 	let error = $state<string | null>(null);
 
 	const options = $state<Calendar.Options>({
@@ -80,6 +83,10 @@
 		},
 		eventClick: (info) => {
 			const item = info.event.extendedProps.item as CalendarItem;
+			if (item.kind === 'expense') {
+				goto(`/expenses?month=${item.start.slice(0, 7)}&day=${item.start.slice(0, 10)}`);
+				return;
+			}
 			const open = item.kind === 'event' ? editor.editEvent(item.source_id) : editor.editTodo(item.source_id);
 			open.catch((err) => (error = message(err, 'Could not open that item.')));
 		},
@@ -159,8 +166,9 @@
 				allDay: item.all_day,
 				backgroundColor: `var(--color-${item.color})`,
 				textColor: 'var(--color-ink)',
-				// Repeats are edited through the form, so their occurrences don't drag.
-				startEditable: !item.recurring,
+				// Repeats are edited through the form, so their occurrences don't drag;
+				// spending badges are daily totals, not movable items.
+				startEditable: !item.recurring && item.kind !== 'expense',
 				durationEditable: item.kind === 'event' && !item.recurring,
 				classNames: [`kind-${item.kind}`, ...(item.done ? ['is-done'] : [])],
 				extendedProps: { item }
@@ -215,7 +223,11 @@
 						<span class="tick" class:checked={item.done} aria-label={item.done ? 'done' : 'to-do'}></span>
 					{/if}
 					{#if timeText && !item.all_day}<span class="time">{timeText}</span>{/if}
-					<span class="ev-title">{item.title}</span>
+					{#if item.kind === 'expense'}
+						<span class="ev-title tabular">{formatMoney(item.amount_cents ?? 0)} spent</span>
+					{:else}
+						<span class="ev-title">{item.title}</span>
+					{/if}
 					{#if item.recurring}<span class="repeat" title="Repeats">↻</span>{/if}
 				</span>
 			{/snippet}

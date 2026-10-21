@@ -3,10 +3,11 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, NaiveDatetime
+from sqlalchemy import func
 from sqlmodel import col, or_, select
 
 from ..deps import SessionDep
-from ..models import Event, Todo
+from ..models import Event, Expense, Todo
 from ..recurrence import occurrences
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
@@ -16,11 +17,12 @@ MAX_RANGE = timedelta(days=400)
 # Module accent colors, matching the frontend theme.
 EVENT_COLOR = "lavender"
 TODO_COLOR = "butter"
+EXPENSE_COLOR = "peach"
 
 
 class CalendarItem(BaseModel):
     id: str
-    kind: Literal["event", "todo"]
+    kind: Literal["event", "todo", "expense"]
     source_id: int
     title: str
     start: NaiveDatetime
@@ -29,6 +31,8 @@ class CalendarItem(BaseModel):
     color: str
     recurring: bool = False
     done: bool = False
+    # Daily total, for kind == "expense".
+    amount_cents: int | None = None
 
 
 @router.get("", response_model=list[CalendarItem])
@@ -41,7 +45,11 @@ def calendar(
     if end - start > MAX_RANGE:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "range is limited to 400 days")
 
-    items = _event_items(session, start, end) + _todo_items(session, start, end)
+    items = (
+        _event_items(session, start, end)
+        + _todo_items(session, start, end)
+        + _expense_items(session, start, end)
+    )
     items.sort(key=lambda item: (item.start, not item.all_day, item.title))
     return items
 
@@ -101,6 +109,34 @@ def _todo_items(session: SessionDep, start: datetime, end: datetime) -> list[Cal
                 all_day=True,
                 color=TODO_COLOR,
                 done=todo.status == "done",
+            )
+        )
+    return items
+
+
+def _expense_items(session: SessionDep, start: datetime, end: datetime) -> list[CalendarItem]:
+    """One all-day badge per day with spending, carrying that day's total."""
+    totals = session.exec(
+        select(Expense.spent_on, func.sum(Expense.amount_cents))
+        .where(Expense.spent_on >= start.date(), Expense.spent_on < end.date() + timedelta(days=1))
+        .group_by(Expense.spent_on)
+    ).all()
+    items = []
+    for day, total in totals:
+        day_start = datetime.combine(day, time())
+        if day_start >= end or day_start + timedelta(days=1) <= start:
+            continue
+        items.append(
+            CalendarItem(
+                id=f"expense-{day:%Y%m%d}",
+                kind="expense",
+                source_id=0,
+                title="Spent",
+                start=day_start,
+                end=day_start + timedelta(days=1),
+                all_day=True,
+                color=EXPENSE_COLOR,
+                amount_cents=total,
             )
         )
     return items

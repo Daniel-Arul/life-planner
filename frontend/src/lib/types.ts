@@ -43,7 +43,7 @@ export type EventInput = Omit<PlannerEvent, 'id'>;
 
 export type CalendarItem = {
 	id: string;
-	kind: 'event' | 'todo';
+	kind: 'event' | 'todo' | 'expense';
 	source_id: number;
 	title: string;
 	start: string;
@@ -52,4 +52,34 @@ export type CalendarItem = {
 	color: EventColor;
 	recurring: boolean;
 	done: boolean;
+	/** Daily total, for kind 'expense'. */
+	amount_cents: number | null;
+};
+
+// Money is integer cents throughout.
+export type ExpenseCategory = {
+	id: number;
+	name: string;
+	monthly_budget_cents: number | null;
+	position: number;
+};
+
+export type Expense = {
+	id: number;
+	spent_on: string;
+	amount_cents: number;
+	category_id: number | null;
+	description: string;
+	payment_method: string | null;
+};
+
+export type ExpenseInput = Omit<Expense, 'id'>;
+
+export type ExpenseStats = {
+	month: string;
+	total_cents: number;
+	previous_total_cents: number;
+	budget_cents: number | null;
+	categories: { id: number | null; name: string; total_cents: number; budget_cents: number | null }[];
+	daily: { date: string; total_cents: number }[];
 };

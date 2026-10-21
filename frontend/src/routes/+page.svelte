@@ -1,10 +1,12 @@
 <script lang="ts">
 	import TodoRow from '$lib/components/TodoRow.svelte';
-	import { fetchCalendar, todos as todosApi } from '$lib/data';
-	import { addDays, daysFromToday, formatTime, parseLocal, todayStr } from '$lib/dates';
+	import { expenses as expensesApi, fetchCalendar, todos as todosApi } from '$lib/data';
+	import { addDays, daysFromToday, formatTime, parseLocal, toMonthStr, todayStr } from '$lib/dates';
 	import { editor } from '$lib/editor.svelte';
 	import { session } from '$lib/session.svelte';
-	import type { CalendarItem, Todo } from '$lib/types';
+	import { formatMoney } from '$lib/money';
+	import type { CalendarItem, ExpenseStats, Todo } from '$lib/types';
+	import BudgetMeter from '$lib/ui/BudgetMeter.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import EmptyState from '$lib/ui/EmptyState.svelte';
 	import Window from '$lib/ui/Window.svelte';
@@ -19,6 +21,7 @@
 
 	let agenda = $state<CalendarItem[]>([]);
 	let openTodos = $state<Todo[]>([]);
+	let spending = $state<ExpenseStats | null>(null);
 	let loaded = $state(false);
 
 	// Most pressing first: overdue, then due today, then by the list's own order.
@@ -38,8 +41,13 @@
 	$effect(() => {
 		void editor.revision;
 		const start = parseLocal(todayStr());
-		Promise.all([fetchCalendar(start, addDays(start, 1)), todosApi.list('open')]).then(
-			([items, todos]) => {
+		Promise.all([
+			fetchCalendar(start, addDays(start, 1)),
+			todosApi.list('open'),
+			expensesApi.stats(toMonthStr(start))
+		]).then(
+			([items, todos, stats]) => {
+				spending = stats;
 				// To-dos have their own window, so Today shows plans only.
 				agenda = items.filter((i) => i.kind === 'event');
 				openTodos = todos;
@@ -112,7 +120,26 @@
 			<EmptyState message="No workouts logged" hint="Workouts arrive in milestone 4." />
 		</Window>
 		<Window title="Month-to-date spending" accent="peach">
-			<EmptyState message="No expenses yet" hint="Expenses arrive in milestone 3." />
+			{#if spending}
+				<p class="spent"><span class="spent-value">{formatMoney(spending.total_cents)}</span> spent so far</p>
+				{#if spending.budget_cents}
+					<BudgetMeter spent={spending.total_cents} budget={spending.budget_cents} label="Monthly budget" />
+				{/if}
+				{#if spending.categories.length}
+					<ul class="top-cats">
+						{#each spending.categories.slice(0, 3) as cat (cat.id ?? 'none')}
+							<li>
+								<span>{cat.name}</span>
+								<span class="tabular">{formatMoney(cat.total_cents)}</span>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			{/if}
+			<div class="window-actions">
+				<Button onclick={() => editor.open({ kind: 'expense' })}>+ Expense</Button>
+				<a class="more" href="/expenses">Expenses →</a>
+			</div>
 		</Window>
 		<Window title="Latest ideas" accent="sky">
 			<EmptyState message="No ideas jotted" hint="Ideas arrive in milestone 5." />
@@ -185,6 +212,32 @@
 
 	.todos {
 		border: 2px solid var(--color-ink);
+	}
+
+	.spent {
+		margin: 0 0 0.75rem;
+		color: var(--color-muted);
+	}
+
+	.spent-value {
+		display: block;
+		font-size: 2rem;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+
+	.top-cats {
+		margin-top: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.top-cats li {
+		display: flex;
+		justify-content: space-between;
+		padding-bottom: 0.3rem;
+		border-bottom: 2px dotted var(--color-grid);
 	}
 
 	.window-actions {

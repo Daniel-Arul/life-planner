@@ -29,6 +29,23 @@ export function addDays(d: Date, days: number): Date {
 	return copy;
 }
 
+/** "YYYY-MM" for a local Date. */
+export function toMonthStr(d: Date): string {
+	return toDateStr(d).slice(0, 7);
+}
+
+/** Shift a "YYYY-MM" month by n months. */
+export function addMonths(month: string, n: number): string {
+	const [year, mon] = month.split('-').map(Number);
+	return toMonthStr(new Date(year, mon - 1 + n, 1));
+}
+
+/** "October 2026" for "2026-10". */
+export function formatMonth(month: string, style: 'long' | 'short' = 'long'): string {
+	const [year, mon] = month.split('-').map(Number);
+	return new Date(year, mon - 1, 1).toLocaleDateString([], { month: style, year: 'numeric' });
+}
+
 export function todayStr(): string {
 	return toDateStr(new Date());
 }

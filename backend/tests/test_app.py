@@ -21,7 +21,8 @@ def test_health(client):
 
 def test_migrations_match_models(settings):
     command.upgrade(Config(str(BACKEND_DIR / "alembic.ini")), "head")
-    assert {"user", "event", "todo"} <= set(inspect(get_engine()).get_table_names())
+    tables = set(inspect(get_engine()).get_table_names())
+    assert {"user", "event", "todo", "expense", "expense_category"} <= tables
 
     with get_engine().connect() as connection:
         context = MigrationContext.configure(connection)
@@ -30,7 +31,15 @@ def test_migrations_match_models(settings):
 
 
 def test_data_endpoints_require_login(client):
-    for path in ("/api/todos", "/api/events", "/api/calendar?start=2026-10-01T00:00&end=2026-11-01T00:00"):
+    for path in (
+        "/api/todos",
+        "/api/events",
+        "/api/expenses",
+        "/api/expense-categories",
+        "/api/config",
+        "/api/stats/expenses?month=2026-10",
+        "/api/calendar?start=2026-10-01T00:00&end=2026-11-01T00:00",
+    ):
         assert client.get(path).status_code == 401, path
 
 

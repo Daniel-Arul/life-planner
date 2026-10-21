@@ -4,8 +4,14 @@
 	import EditorHost from './EditorHost.svelte';
 	import MenuBar from './MenuBar.svelte';
 	import Sidebar from './Sidebar.svelte';
+	import { appConfig } from '$lib/config.svelte';
+	import { onMount } from 'svelte';
 
 	let { children }: { children: Snippet } = $props();
+
+	onMount(() => {
+		appConfig.load();
+	});
 </script>
 
 <div class="shell">

@@ -8,13 +8,17 @@ This is a personal, self-hosted app for tracking **workouts, expenses, to-dos, i
 - Docker Compose for deployment.
 - A 64-bit OS on a Pi 4 or Pi 5.
 
-**Status:** milestones 1–2 done (skeleton, auth, UI kit; to-dos, events, calendar). Next: milestone 3, expenses.
+**Status:** milestones 1–3 done (skeleton, auth, UI kit; to-dos, events, calendar; expenses and budgets). Next: milestone 4, workouts.
 
 **Changes from the original plan so far:**
 - On laptops, edit forms open as a modal window rather than a master–detail side pane, so every page shares one editor.
 - Editing a recurring event changes the whole series; occurrences of a series can't be dragged individually (one-off exceptions could come later).
 - Event times are stored as local wall-clock times with no timezone, so recurring events keep their local time across daylight-saving changes.
-- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t` (go to Home, Calendar or To-dos) work now.
+- The `/` search shortcut waits until there's search to open; `n` (new item) and `g` then `h`/`c`/`t`/`e` (go to Home, Calendar, To-dos or Expenses) work now.
+- Charts are small hand-built SVG components instead of Chart.js/LayerChart, keeping the bundle light and the look consistent. Chart marks use a deeper peach (`#e8894b`), because the pastel is too faint to read as a mark.
+- Expense categories have no color of their own. Expense charts are a single series in the module's peach, and over-budget shows as a status color with an icon and text.
+- The currency is set by `PLANNER_CURRENCY` in `.env` (default CAD) and served to the app from `/api/config`. The expense date field is `spent_on`.
+- The migration seeds starter categories (Groceries, Eating out, Transport, Housing, Bills, Health, Fun, Shopping, Other). Budgets are edited in Settings.
 
 ---
 

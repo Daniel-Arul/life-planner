@@ -7,6 +7,7 @@
 	import { icons } from '$lib/ui/icons';
 	import { formatDay, todayStr } from '$lib/dates';
 	import EventForm from './EventForm.svelte';
+	import ExpenseForm from './ExpenseForm.svelte';
 	import TodoForm from './TodoForm.svelte';
 
 	const target = $derived(editor.target);
@@ -15,6 +16,8 @@
 		if (!target) return { title: '', accent: 'lavender' };
 		if (target.kind === 'event') return { title: target.event ? 'Edit event' : 'New event', accent: 'lavender' };
 		if (target.kind === 'todo') return { title: target.todo ? 'Edit to-do' : 'New to-do', accent: 'butter' };
+		if (target.kind === 'expense')
+			return { title: target.expense ? 'Edit expense' : 'New expense', accent: 'peach' };
 		return { title: `Add to ${formatDay(target.date)}`, accent: 'lavender' };
 	});
 
@@ -27,7 +30,7 @@
 		editor.open({ kind: 'event', draft: { startDate: date, startTime: time } });
 	}
 
-	// Laptop shortcuts: n = new item, g then h/c/t = go to home/calendar/to-dos.
+	// Laptop shortcuts: n = new item, g then h/c/t/e = go to home/calendar/to-dos/expenses.
 	let pendingG = 0;
 	function onkeydown(e: KeyboardEvent) {
 		if (e.metaKey || e.ctrlKey || e.altKey || editor.target) return;
@@ -35,7 +38,7 @@
 		if (el.closest('input, textarea, select, [contenteditable="true"]')) return;
 
 		if (Date.now() - pendingG < 1000) {
-			const dest = { h: '/', c: '/calendar', t: '/todos' }[e.key];
+			const dest = { h: '/', c: '/calendar', t: '/todos', e: '/expenses' }[e.key];
 			pendingG = 0;
 			if (dest) {
 				e.preventDefault();
@@ -68,6 +71,8 @@
 			<EventForm event={target.event} draft={target.draft} onsaved={saved} oncancel={() => editor.close()} />
 		{:else if target?.kind === 'todo'}
 			<TodoForm todo={target.todo} dueDate={target.dueDate} onsaved={saved} oncancel={() => editor.close()} />
+		{:else if target?.kind === 'expense'}
+			<ExpenseForm expense={target.expense} date={target.date} onsaved={saved} oncancel={() => editor.close()} />
 		{:else if target?.kind === 'chooser'}
 			<div class="chooser">
 				<button
@@ -86,8 +91,16 @@
 					<Pixel art={icons.todo} size={32} />
 					<span>To-do</span>
 				</button>
+				<button
+					type="button"
+					style:--accent="var(--color-peach)"
+					onclick={() => editor.open({ kind: 'expense', date: target.date })}
+				>
+					<Pixel art={icons.expense} size={32} />
+					<span>Expense</span>
+				</button>
 			</div>
-			<p class="soon">Workouts, expenses and ideas join this menu in later milestones.</p>
+			<p class="soon">Workouts and ideas join this menu in later milestones.</p>
 		{/if}
 	{/key}
 </Sheet>
@@ -116,7 +129,7 @@
 
 	.chooser {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
 		gap: 1rem;
 	}
 

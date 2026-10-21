@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import CategoryManager from '$lib/components/CategoryManager.svelte';
 	import { session } from '$lib/session.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Window from '$lib/ui/Window.svelte';
@@ -25,11 +26,18 @@
 		</p>
 		<Button variant="danger" onclick={logout}>Log out</Button>
 	</Window>
+
+	<Window title="Expense categories" accent="peach">
+		<CategoryManager />
+	</Window>
 </div>
 
 <style>
 	.settings {
-		max-width: 36rem;
+		max-width: 40rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
 	}
 
 	dl {
