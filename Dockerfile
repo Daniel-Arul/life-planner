@@ -24,11 +24,12 @@ COPY backend/alembic.ini ./
 COPY backend/alembic ./alembic
 COPY --from=frontend /build/build /app/static
 
-# Matches the default Pi user (uid 1000) so ./data on the host stays writable.
+# Non-root default for rootful Docker. docker-compose.yml overrides it with
+# root, which under rootless Docker is the host user who owns ./data.
 RUN useradd --create-home --uid 1000 planner && mkdir -p /data && chown planner /data
 USER planner
 
-EXPOSE 8000
+EXPOSE 8000docker compose exec app python -m app.cli create-user
 HEALTHCHECK --interval=30s --timeout=5s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"
 

@@ -30,12 +30,12 @@ cd frontend && npm run check
 
 ## Deploy on the Pi
 
-These steps assume Raspberry Pi OS (64-bit) with Docker and Tailscale installed.
+These steps assume Raspberry Pi OS (64-bit) with [rootless Docker](https://docs.docker.com/engine/security/rootless/) and Tailscale installed.
 
 ```bash
 git clone <this repo> life-planner && cd life-planner
 cp .env.example .env            # then set PLANNER_SECRET_KEY
-mkdir -p data                   # create it as your user so the container (uid 1000) can write
+mkdir -p data                   # owned by you; the container's root is your user under rootless Docker
 docker compose up -d --build
 docker compose exec app python -m app.cli create-user <your-name>
 sudo tailscale serve --bg 8000  # https://<pi-name>.<tailnet>.ts.net

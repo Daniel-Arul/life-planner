@@ -3,6 +3,9 @@ services:
     build: .
     image: life-planner:latest
     restart: unless-stopped
+    # Rootless Docker: container root is your own user on the host, so it can
+    # write ./data without chown. (The image's uid-1000 user maps to a subuid.)
+    user: "0:0"
     env_file: .env
     ports:
       # Loopback only: reachable through `tailscale serve`, not from the LAN.
